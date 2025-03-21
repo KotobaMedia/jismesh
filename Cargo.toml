@@ -1,7 +1,11 @@
 [package]
 name = "jismesh"
-version = "0.1.0"
+version = "0.0.1"
 edition = "2024"
+license = "MIT"
+license-file = "LICENSE"
+homepage = "https://github.com/KotobaMedia/jismesh"
+repository = "https://github.com/KotobaMedia/jismesh"
 
 [dependencies]
 ndarray = "0.16.1"
