@@ -1,0 +1,10 @@
+[package]
+name = "jismesh"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+ndarray = "0.16.1"
+
+[dev-dependencies]
+approx = "0.5.1"
