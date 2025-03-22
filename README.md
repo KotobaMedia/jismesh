@@ -25,3 +25,63 @@ Utilities for handling and converting JIS X0410 area mesh codes. This Rust port 
 ```bash
 cargo add jismesh
 ```
+
+## 利用
+
+**注意: このライブラリは [Python](https://github.com/hni14/jismesh) 版と同様に、「緯度」「軽度」の順で引数を受け付けています**
+
+### 緯度軽度（世界測地系）からメッシュコードを生成する場合
+
+```rust
+use ndarray::array;
+use jismesh::{MeshLevel, to_meshcode};
+
+let codes = to_meshcode(&array![35.658581], &array![139.745433], MeshLevel::Lv3).unwrap();
+assert_eq!(codes, array![53393599]);
+
+// 複数点を計算する場合
+let codes = to_meshcode(
+    &array![35.658581, 34.987574],
+    &array![139.745433, 135.759363],
+    MeshLevel::Lv3,
+).unwrap();
+assert_eq!(codes, array![53393599, 52353680]);
+```
+
+### 地域メッシュコードから次数を計算する場合
+
+```rust
+use ndarray::array;
+use jismesh::{MeshLevel::Lv3, to_meshlevel};
+
+let levels = to_meshlevel(&array![53393599, 52353680]).unwrap();
+assert_eq!(levels, vec![Lv3, Lv3]);
+```
+
+### 地域メッシュコードから緯度経度を計算する場合
+
+```rust
+use ndarray::array;
+use jismesh::{MeshLevel::Lv3, to_meshpoint};
+
+// 南西端の緯度経度を求める。
+let points = to_meshpoint(array![53393599], array![0.0], array![0.0]).unwrap();
+assert_eq!(points, array![[35.65833333333333],[139.7375]]);
+
+// 北東端の緯度経度を求める。
+let points = to_meshpoint(array![53393599], array![1.0], array![1.0]).unwrap();
+assert_eq!(points, array![[35.666666666666664],[139.75]]);
+
+// 中心点の緯度経度を求める。
+let points = to_meshpoint(array![53393599], array![0.5], array![0.5]).unwrap();
+assert_eq!(points, array![[35.6625],[139.74375]]);
+```
+
+### 次数から `MeshLevel` の変換
+
+```rust
+use jismesh::MeshLevel;
+
+let lv = MeshLevel::try_from(3).unwrap();
+assert_eq!(lv, MeshLevel::Lv3);
+```

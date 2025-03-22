@@ -119,7 +119,7 @@ pub fn to_meshpoint(
     meshcode: Array1<u64>,
     lat_multiplier: Array1<f64>,
     lon_multiplier: Array1<f64>,
-) -> Result<Array2<f64>, String> {
+) -> Result<Array2<f64>> {
     // Convert single values to arrays
     let meshcode_len = meshcode.len();
 

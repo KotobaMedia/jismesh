@@ -3,12 +3,12 @@ name = "jismesh"
 version = "0.0.1"
 edition = "2024"
 license = "MIT"
-license-file = "LICENSE"
 homepage = "https://github.com/KotobaMedia/jismesh"
 repository = "https://github.com/KotobaMedia/jismesh"
 
 [dependencies]
 ndarray = "0.16.1"
+thiserror = "2.0.12"
 
 [dev-dependencies]
 approx = "0.5.1"

@@ -1,50 +1,24 @@
+use super::*;
+use crate::utils::error::JismeshError;
 use ndarray::Array1;
-
-use super::*; // import required definitions from mod.rs
 
 /// Converts latitude & longitude to a meshcode.
 /// 緯度経度から指定次の地域メッシュコードを算出する。
+///
 /// Args:
-///   lat: 世界測地系の緯度(度単位)
-///   lon: 世界測地系の経度(度単位)
-///   level: 地域メッシュコードの次数
-///          1次(80km四方):1
-///          40倍(40km四方):40000
-///          20倍(20km四方):20000
-///          16倍(16km四方):16000
-///          2次(10km四方):2
-///          8倍(8km四方):8000
-///          5倍(5km四方):5000
-///          4倍(4km四方):4000
-///          2.5倍(2.5km四方):2500
-///          2倍(2km四方):2000
-///          3次(1km四方):3
-///          4次(500m四方):4
-///          5次(250m四方):5
-///          6次(125m四方):6
-/// Return:
-///   指定次の地域メッシュコード
-pub fn to_meshcode(
-    lat: &Array1<f64>,
-    lon: &Array1<f64>,
-    level: MeshLevel,
-) -> Result<Array1<u64>, String> {
+/// * lat: 世界測地系の緯度(度単位)
+/// * lon: 世界測地系の経度(度単位)
+pub fn to_meshcode(lat: &Array1<f64>, lon: &Array1<f64>, level: MeshLevel) -> Result<Array1<u64>> {
     // Validate bounds for all values in the arrays
     for &lat_val in lat.iter() {
         if !(0.0 <= lat_val && lat_val < 66.66) {
-            return Err(format!(
-                "Latitude {} is out of bounds (0 <= lat < 66.66)",
-                lat_val
-            ));
+            return Err(JismeshError::LatitudeOutOfBounds(lat_val));
         }
     }
 
     for &lon_val in lon.iter() {
         if !(100.0 <= lon_val && lon_val < 180.0) {
-            return Err(format!(
-                "Longitude {} is out of bounds (100 <= lon < 180)",
-                lon_val
-            ));
+            return Err(JismeshError::LongitudeOutOfBounds(lon_val));
         }
     }
 

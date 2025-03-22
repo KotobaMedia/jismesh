@@ -1,3 +1,6 @@
+mod error;
+pub use error::JismeshError;
+use error::Result;
 mod meshcode;
 pub use meshcode::to_meshcode;
 mod meshlevel;
@@ -39,6 +42,30 @@ pub enum MeshLevel {
     Lv6 = 6,
 }
 
+impl TryFrom<usize> for MeshLevel {
+    type Error = JismeshError;
+
+    fn try_from(value: usize) -> Result<Self> {
+        match value {
+            1 => Ok(MeshLevel::Lv1),
+            40000 => Ok(MeshLevel::X40),
+            20000 => Ok(MeshLevel::X20),
+            16000 => Ok(MeshLevel::X16),
+            2 => Ok(MeshLevel::Lv2),
+            8000 => Ok(MeshLevel::X8),
+            5000 => Ok(MeshLevel::X5),
+            4000 => Ok(MeshLevel::X4),
+            2500 => Ok(MeshLevel::X2_5),
+            2000 => Ok(MeshLevel::X2),
+            3 => Ok(MeshLevel::Lv3),
+            4 => Ok(MeshLevel::Lv4),
+            5 => Ok(MeshLevel::Lv5),
+            6 => Ok(MeshLevel::Lv6),
+            _ => Err(JismeshError::InvalidMeshLevel(value)),
+        }
+    }
+}
+
 const UNIT_LAT_LV1: f64 = 2.0 / 3.0;
 const UNIT_LON_LV1: f64 = 1.0;
 const UNIT_LAT_40000: f64 = UNIT_LAT_LV1 / 2.0;
@@ -68,7 +95,7 @@ const UNIT_LON_LV5: f64 = UNIT_LON_LV4 / 2.0;
 const UNIT_LAT_LV6: f64 = UNIT_LAT_LV5 / 2.0;
 const UNIT_LON_LV6: f64 = UNIT_LON_LV5 / 2.0;
 
-pub fn unit_lat_lon(level: MeshLevel) -> (f64, f64) {
+pub(crate) fn unit_lat_lon(level: MeshLevel) -> (f64, f64) {
     match level {
         MeshLevel::Lv1 => (UNIT_LAT_LV1, UNIT_LON_LV1),
         MeshLevel::X40 => (UNIT_LAT_40000, UNIT_LON_40000),
@@ -87,15 +114,15 @@ pub fn unit_lat_lon(level: MeshLevel) -> (f64, f64) {
     }
 }
 
-pub fn unit_lat(level: MeshLevel) -> f64 {
+pub(crate) fn unit_lat(level: MeshLevel) -> f64 {
     unit_lat_lon(level).0
 }
 
-pub fn unit_lon(level: MeshLevel) -> f64 {
+pub(crate) fn unit_lon(level: MeshLevel) -> f64 {
     unit_lat_lon(level).1
 }
 
-pub fn slice(codes: &Array1<u64>, start: u32, stop: u32) -> Array1<u8> {
+pub(crate) fn slice(codes: &Array1<u64>, start: u32, stop: u32) -> Array1<u8> {
     codes.mapv(|t| {
         let num_digits = (t as f64).log10().floor() as u32 + 1;
         if num_digits < stop {

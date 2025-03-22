@@ -1,11 +1,12 @@
 use super::*;
+use crate::utils::error::JismeshError;
 use ndarray::Array1;
 
 /// Determines the mesh level from a meshcode.
-pub fn to_meshlevel(meshcode: &Array1<u64>) -> Result<Vec<MeshLevel>, String> {
+pub fn to_meshlevel(meshcode: &Array1<u64>) -> Result<Vec<MeshLevel>> {
     // Check if any value is 0 or invalid
     if meshcode.iter().any(|&code| code == 0) {
-        return Err("Invalid meshcode: contains zero value".to_string());
+        return Err(JismeshError::UnknownMeshLevelForCode(0));
     }
 
     // Calculate number of digits for each meshcode
@@ -31,7 +32,7 @@ pub fn to_meshlevel(meshcode: &Array1<u64>) -> Result<Vec<MeshLevel>, String> {
                 5 => MeshLevel::X20,
                 6 => MeshLevel::X8,
                 7 => MeshLevel::X16,
-                _ => return Err(format!("Invalid meshcode at level 7: {}", meshcode[idx])),
+                _ => return Err(JismeshError::InvalidMeshcodeAtLevel(7, meshcode[idx])),
             },
             8 => MeshLevel::Lv3,
             9 => match i[idx] {
@@ -39,17 +40,17 @@ pub fn to_meshlevel(meshcode: &Array1<u64>) -> Result<Vec<MeshLevel>, String> {
                 5 => MeshLevel::X2,
                 6 => MeshLevel::X2_5,
                 7 => MeshLevel::X4,
-                _ => return Err(format!("Invalid meshcode at level 9: {}", meshcode[idx])),
+                _ => return Err(JismeshError::InvalidMeshcodeAtLevel(9, meshcode[idx])),
             },
             10 => match j[idx] {
                 1..=4 => MeshLevel::Lv5,
-                _ => return Err(format!("Invalid meshcode at level 10: {}", meshcode[idx])),
+                _ => return Err(JismeshError::InvalidMeshcodeAtLevel(10, meshcode[idx])),
             },
             11 => match k[idx] {
                 1..=4 => MeshLevel::Lv6,
-                _ => return Err(format!("Invalid meshcode at level 11: {}", meshcode[idx])),
+                _ => return Err(JismeshError::InvalidMeshcodeAtLevel(11, meshcode[idx])),
             },
-            _ => return Err(format!("Unknown mesh level for code: {}", meshcode[idx])),
+            _ => return Err(JismeshError::UnknownMeshLevelForCode(meshcode[idx])),
         };
 
         results.push(level);
