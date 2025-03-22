@@ -1,10 +1,12 @@
 [package]
 name = "jismesh"
+description = "Utilities for handling and converting JIS X0410 area mesh codes."
 version = "0.0.1"
 edition = "2024"
 license = "MIT"
 homepage = "https://github.com/KotobaMedia/jismesh"
 repository = "https://github.com/KotobaMedia/jismesh"
+authors = ["Keita Kobayashi <keita@kotobamedia.com>"]
 
 [dependencies]
 ndarray = "0.16.1"
