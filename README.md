@@ -1,5 +1,8 @@
 # jismesh-rs
 
+[![Crates.io Version](https://img.shields.io/crates/v/jismesh)](https://crates.io/crates/jismesh)
+[![docs.rs](https://img.shields.io/docsrs/jismesh)](https://docs.rs/jismesh/latest/jismesh/)
+
 Utilities for handling and converting JIS X0410 area mesh codes. This Rust port is based on a [Python](https://github.com/hni14/jismesh) implementation.
 
 地域メッシュコードに関するユーティリティです。[Python版](https://github.com/hni14/jismesh)を参照に作成したものです。
