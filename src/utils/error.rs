@@ -20,6 +20,9 @@ pub enum JismeshError {
         "Mismathed levels: the level must be the same for meshcode_sw and meshcode_ne {0} != {1}"
     )]
     MismatchedMeshLevels(MeshLevel, MeshLevel),
+
+    #[error("Parse Error: {0}")]
+    ParseError(#[from] strum::ParseError),
 }
 
 pub type Result<T> = std::result::Result<T, JismeshError>;

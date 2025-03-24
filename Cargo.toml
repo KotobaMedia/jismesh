@@ -10,6 +10,8 @@ authors = ["Keita Kobayashi <keita@kotobamedia.com>"]
 
 [dependencies]
 ndarray = "0.16.1"
+strum = "0.27.1"
+strum_macros = "0.27.1"
 thiserror = "2.0.12"
 
 [dev-dependencies]
