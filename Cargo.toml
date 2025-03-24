@@ -1,7 +1,7 @@
 [package]
 name = "jismesh"
 description = "Utilities for handling and converting JIS X0410 area mesh codes."
-version = "0.0.1"
+version = "0.1.0"
 edition = "2024"
 license = "MIT"
 homepage = "https://github.com/KotobaMedia/jismesh"
