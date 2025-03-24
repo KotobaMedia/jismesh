@@ -1,4 +1,6 @@
 mod error;
+use std::fmt;
+
 pub use error::JismeshError;
 use error::Result;
 mod meshcode;
@@ -7,6 +9,8 @@ mod meshlevel;
 pub use meshlevel::to_meshlevel;
 mod meshpoint;
 pub use meshpoint::to_meshpoint;
+mod envelope;
+pub use envelope::{to_envelope, to_intersects};
 use ndarray::Array1;
 
 /// 地域メッシュコードの次数
@@ -40,6 +44,12 @@ pub enum MeshLevel {
     Lv5 = 5,
     /// 6次(125m四方)
     Lv6 = 6,
+}
+
+impl fmt::Display for MeshLevel {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{:?}", self)
+    }
 }
 
 impl TryFrom<usize> for MeshLevel {

@@ -1,3 +1,4 @@
+use super::MeshLevel;
 use thiserror::Error;
 
 #[derive(Error, Debug, PartialEq)]
@@ -14,6 +15,11 @@ pub enum JismeshError {
 
     #[error("Invalid mesh level: {0}")]
     InvalidMeshLevel(usize),
+
+    #[error(
+        "Mismathed levels: the level must be the same for meshcode_sw and meshcode_ne {0} != {1}"
+    )]
+    MismatchedMeshLevels(MeshLevel, MeshLevel),
 }
 
 pub type Result<T> = std::result::Result<T, JismeshError>;
