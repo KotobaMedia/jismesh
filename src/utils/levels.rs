@@ -35,6 +35,48 @@ pub enum MeshLevel {
     Lv6 = 6,
 }
 
+impl MeshLevel {
+    /// メッシュコードの日本語名を取得する
+    pub fn to_string_jp(&self) -> &str {
+        match self {
+            MeshLevel::Lv1 => "1次",
+            MeshLevel::X40 => "40倍",
+            MeshLevel::X20 => "20倍",
+            MeshLevel::X16 => "16倍",
+            MeshLevel::Lv2 => "2次",
+            MeshLevel::X8 => "8倍",
+            MeshLevel::X5 => "5倍",
+            MeshLevel::X4 => "4倍",
+            MeshLevel::X2_5 => "2.5倍",
+            MeshLevel::X2 => "2倍",
+            MeshLevel::Lv3 => "3次",
+            MeshLevel::Lv4 => "4次",
+            MeshLevel::Lv5 => "5次",
+            MeshLevel::Lv6 => "6次",
+        }
+    }
+    /// メッシュコードのおおよそのサイズを取得する（日本語）
+    /// 例: "80km四方"
+    pub fn to_size_jp(&self) -> &str {
+        match self {
+            MeshLevel::Lv1 => "80km四方",
+            MeshLevel::X40 => "40km四方",
+            MeshLevel::X20 => "20km四方",
+            MeshLevel::X16 => "16km四方",
+            MeshLevel::Lv2 => "10km四方",
+            MeshLevel::X8 => "8km四方",
+            MeshLevel::X5 => "5km四方",
+            MeshLevel::X4 => "4km四方",
+            MeshLevel::X2_5 => "2.5km四方",
+            MeshLevel::X2 => "2km四方",
+            MeshLevel::Lv3 => "1km四方",
+            MeshLevel::Lv4 => "500m四方",
+            MeshLevel::Lv5 => "250m四方",
+            MeshLevel::Lv6 => "125m四方",
+        }
+    }
+}
+
 impl fmt::Display for MeshLevel {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{:?}", self)
@@ -101,5 +143,18 @@ mod tests {
         // Test invalid string
         let result: Result<_> = "Invalid".parse::<MeshLevel>().map_err(|e| e.into());
         assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_to_jp_str() {
+        let level = MeshLevel::Lv1;
+        assert_eq!(level.to_string_jp(), "1次");
+        assert_eq!(level.to_size_jp(), "80km四方");
+        let level = MeshLevel::Lv6;
+        assert_eq!(level.to_string_jp(), "6次");
+        assert_eq!(level.to_size_jp(), "125m四方");
+        let level = MeshLevel::X40;
+        assert_eq!(level.to_string_jp(), "40倍");
+        assert_eq!(level.to_size_jp(), "40km四方");
     }
 }
