@@ -27,9 +27,9 @@ pub fn to_envelope(meshcode_sw: u64, meshcode_ne: u64) -> Result<Vec<u64>> {
     let margin_lon = 0.5;
 
     // Generate mesh points for southwest and northeast corners
-    let sw_points = to_meshpoint(&vec![meshcode_sw], &vec![margin_lat], &vec![margin_lon])?;
+    let sw_points = to_meshpoint(&[meshcode_sw], &[margin_lat], &[margin_lon])?;
 
-    let ne_points = to_meshpoint(&vec![meshcode_ne], &vec![1.0], &vec![1.0])?;
+    let ne_points = to_meshpoint(&[meshcode_ne], &[1.0], &[1.0])?;
 
     let lat_s = sw_points[0][0];
     let lon_w = sw_points[1][0];
@@ -71,9 +71,9 @@ pub fn to_intersects(meshcode: u64, to_level: MeshLevel) -> Result<Vec<u64>> {
     };
 
     // Generate mesh points for the original mesh code
-    let from_points_sw = to_meshpoint(&vec![meshcode], &vec![margin_lat], &vec![margin_lon])?;
+    let from_points_sw = to_meshpoint(&[meshcode], &[margin_lat], &[margin_lon])?;
 
-    let from_points_ne = to_meshpoint(&vec![meshcode], &vec![1.0], &vec![1.0])?;
+    let from_points_ne = to_meshpoint(&[meshcode], &[1.0], &[1.0])?;
 
     let from_lat_s = from_points_sw[0][0];
     let from_lon_w = from_points_sw[1][0];
@@ -147,7 +147,7 @@ mod tests {
         let to_level = MeshLevel::Lv2;
 
         let result = to_intersects(meshcode, to_level).unwrap();
-        assert!(result.len() > 0);
+        assert!(!result.is_empty());
 
         // All resulting codes should be level 2
         for code in result.iter() {
@@ -160,7 +160,7 @@ mod tests {
         let to_level = MeshLevel::Lv3;
 
         let result = to_intersects(meshcode, to_level).unwrap();
-        assert!(result.len() > 0);
+        assert!(!result.is_empty());
 
         // All resulting codes should be level 3
         for code in result.iter() {

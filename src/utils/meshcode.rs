@@ -10,13 +10,13 @@ use crate::utils::error::JismeshError;
 pub fn to_meshcode(lat: &[f64], lon: &[f64], level: MeshLevel) -> Result<Vec<u64>> {
     // Validate bounds for all values in the arrays
     for &lat_val in lat.iter() {
-        if !(0.0 <= lat_val && lat_val < 66.66) {
+        if !(0.0..66.66).contains(&lat_val) {
             return Err(JismeshError::LatitudeOutOfBounds(lat_val));
         }
     }
 
     for &lon_val in lon.iter() {
-        if !(100.0 <= lon_val && lon_val < 180.0) {
+        if !(100.0..180.0).contains(&lon_val) {
             return Err(JismeshError::LongitudeOutOfBounds(lon_val));
         }
     }

@@ -110,18 +110,18 @@ pub fn to_meshpoint(
     let meshcode_len = meshcode.len();
 
     // Get the mesh level for each code
-    let level = to_meshlevel(&meshcode)?;
+    let level = to_meshlevel(meshcode)?;
 
     // Extract parts from meshcode
-    let ab = slice(&meshcode, 0, 2);
-    let cd = slice(&meshcode, 2, 4);
-    let e = slice(&meshcode, 4, 5);
-    let f = slice(&meshcode, 5, 6);
-    let g = slice(&meshcode, 6, 7);
-    let h = slice(&meshcode, 7, 8);
-    let i = slice(&meshcode, 8, 9);
-    let j = slice(&meshcode, 9, 10);
-    let k = slice(&meshcode, 10, 11);
+    let ab = slice(meshcode, 0, 2);
+    let cd = slice(meshcode, 2, 4);
+    let e = slice(meshcode, 4, 5);
+    let f = slice(meshcode, 5, 6);
+    let g = slice(meshcode, 6, 7);
+    let h = slice(meshcode, 7, 8);
+    let i = slice(meshcode, 8, 9);
+    let j = slice(meshcode, 9, 10);
+    let k = slice(meshcode, 10, 11);
 
     // Initialize lat and lon vectors
     let mut lat = vec![0.0; meshcode_len];
@@ -267,8 +267,8 @@ pub fn to_meshpoint(
         apply_multipliers(
             idx,
             level[idx],
-            &lat_multiplier,
-            &lon_multiplier,
+            lat_multiplier,
+            lon_multiplier,
             &mut lat,
             &mut lon,
         );
