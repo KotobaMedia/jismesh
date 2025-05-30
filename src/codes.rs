@@ -17,8 +17,6 @@ pub const JAPAN_LV1: &[u64] = &[
 
 #[cfg(test)]
 mod tests {
-    use ndarray::Array1;
-
     use super::*;
     use crate::{MeshLevel, to_meshlevel};
 
@@ -27,9 +25,6 @@ mod tests {
         assert_eq!(JAPAN_LV1.len(), 176);
         assert_eq!(JAPAN_LV1[0], 6848);
         assert_eq!(JAPAN_LV1[175], 3036);
-        assert_eq!(
-            to_meshlevel(&Array1::from_vec(JAPAN_LV1.to_vec())).unwrap(),
-            vec![MeshLevel::Lv1; 176]
-        );
+        assert_eq!(to_meshlevel(JAPAN_LV1).unwrap(), vec![MeshLevel::Lv1; 176]);
     }
 }

@@ -1,22 +1,24 @@
 use super::*;
 use crate::utils::error::JismeshError;
-use ndarray::Array1;
 
 /// Determines the mesh level from a meshcode.
-pub fn to_meshlevel(meshcode: &Array1<u64>) -> Result<Vec<MeshLevel>> {
+pub fn to_meshlevel(meshcode: &[u64]) -> Result<Vec<MeshLevel>> {
     // Check if any value is 0 or invalid
     if meshcode.iter().any(|&code| code == 0) {
         return Err(JismeshError::UnknownMeshLevelForCode(0));
     }
 
     // Calculate number of digits for each meshcode
-    let num_digits = meshcode.mapv(|code| (code as f64).log10().floor() as usize + 1);
+    let num_digits: Vec<usize> = meshcode
+        .iter()
+        .map(|&code| (code as f64).log10().floor() as usize + 1)
+        .collect();
 
     // Extract the g and i digits needed for determining mesh levels
-    let g = slice(&meshcode, 6, 7);
-    let i = slice(&meshcode, 8, 9);
-    let j = slice(&meshcode, 9, 10);
-    let k = slice(&meshcode, 10, 11);
+    let g = slice(meshcode, 6, 7);
+    let i = slice(meshcode, 8, 9);
+    let j = slice(meshcode, 9, 10);
+    let k = slice(meshcode, 10, 11);
 
     // Create a result vector to store mesh levels
     let mut results = Vec::with_capacity(meshcode.len());
@@ -62,7 +64,6 @@ pub fn to_meshlevel(meshcode: &Array1<u64>) -> Result<Vec<MeshLevel>> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use ndarray::array;
 
     #[test]
     fn test_meshlevel() {
@@ -98,7 +99,7 @@ mod tests {
         ];
         for (meshcode, expected) in test_cases {
             assert_eq!(
-                to_meshlevel(&array![meshcode]),
+                to_meshlevel(&[meshcode]),
                 Ok(vec![expected]),
                 "Failed for meshcode: {}",
                 meshcode
@@ -108,7 +109,7 @@ mod tests {
 
     #[test]
     fn test_meshlevel_invalid() {
-        let res = to_meshlevel(&array![5]);
+        let res = to_meshlevel(&[5]);
         assert!(res.is_err());
     }
 }

@@ -1,21 +1,13 @@
-use ndarray::Array2;
-
 use super::*;
 
 /// Applies a base level adjustment to latitude and longitude
-fn apply_base_adjustment(
-    idx: usize,
-    ab: &Array1<u8>,
-    cd: &Array1<u8>,
-    lat: &mut Array1<f64>,
-    lon: &mut Array1<f64>,
-) {
+fn apply_base_adjustment(idx: usize, ab: &[u8], cd: &[u8], lat: &mut [f64], lon: &mut [f64]) {
     lat[idx] = ab[idx] as f64 * UNIT_LAT_LV1;
     lon[idx] = cd[idx] as f64 * UNIT_LON_LV1 + 100.0;
 }
 
 /// Applies the level 40000 adjustment to latitude and longitude
-fn apply_level_40000(idx: usize, e: &Array1<u8>, lat: &mut Array1<f64>, lon: &mut Array1<f64>) {
+fn apply_level_40000(idx: usize, e: &[u8], lat: &mut [f64], lon: &mut [f64]) {
     if e[idx] / 3 == 1 {
         lat[idx] += UNIT_LAT_40000;
     }
@@ -25,13 +17,7 @@ fn apply_level_40000(idx: usize, e: &Array1<u8>, lat: &mut Array1<f64>, lon: &mu
 }
 
 /// Applies the level 2 adjustment to latitude and longitude
-fn apply_level_2(
-    idx: usize,
-    e: &Array1<u8>,
-    f: &Array1<u8>,
-    lat: &mut Array1<f64>,
-    lon: &mut Array1<f64>,
-) {
+fn apply_level_2(idx: usize, e: &[u8], f: &[u8], lat: &mut [f64], lon: &mut [f64]) {
     lat[idx] += e[idx] as f64 * UNIT_LAT_LV2;
     lon[idx] += f[idx] as f64 * UNIT_LON_LV2;
 }
@@ -39,12 +25,12 @@ fn apply_level_2(
 /// Applies the level 3 adjustment to latitude and longitude
 fn apply_level_3(
     idx: usize,
-    e: &Array1<u8>,
-    f: &Array1<u8>,
-    g: &Array1<u8>,
-    h: &Array1<u8>,
-    lat: &mut Array1<f64>,
-    lon: &mut Array1<f64>,
+    e: &[u8],
+    f: &[u8],
+    g: &[u8],
+    h: &[u8],
+    lat: &mut [f64],
+    lon: &mut [f64],
 ) {
     // First apply level 2 component
     apply_level_2(idx, e, f, lat, lon);
@@ -57,13 +43,13 @@ fn apply_level_3(
 /// Applies the level 4 adjustment which builds on level 3
 fn apply_level_4(
     idx: usize,
-    e: &Array1<u8>,
-    f: &Array1<u8>,
-    g: &Array1<u8>,
-    h: &Array1<u8>,
-    i: &Array1<u8>,
-    lat: &mut Array1<f64>,
-    lon: &mut Array1<f64>,
+    e: &[u8],
+    f: &[u8],
+    g: &[u8],
+    h: &[u8],
+    i: &[u8],
+    lat: &mut [f64],
+    lon: &mut [f64],
 ) {
     // First apply level 3 component
     apply_level_3(idx, e, f, g, h, lat, lon);
@@ -80,14 +66,14 @@ fn apply_level_4(
 /// Applies the level 5 adjustment which builds on level 4
 fn apply_level_5(
     idx: usize,
-    e: &Array1<u8>,
-    f: &Array1<u8>,
-    g: &Array1<u8>,
-    h: &Array1<u8>,
-    i: &Array1<u8>,
-    j: &Array1<u8>,
-    lat: &mut Array1<f64>,
-    lon: &mut Array1<f64>,
+    e: &[u8],
+    f: &[u8],
+    g: &[u8],
+    h: &[u8],
+    i: &[u8],
+    j: &[u8],
+    lat: &mut [f64],
+    lon: &mut [f64],
 ) {
     // First apply level 4 component
     apply_level_4(idx, e, f, g, h, i, lat, lon);
@@ -105,10 +91,10 @@ fn apply_level_5(
 fn apply_multipliers(
     idx: usize,
     level: MeshLevel,
-    lat_multiplier: &Array1<f64>,
-    lon_multiplier: &Array1<f64>,
-    lat: &mut Array1<f64>,
-    lon: &mut Array1<f64>,
+    lat_multiplier: &[f64],
+    lon_multiplier: &[f64],
+    lat: &mut [f64],
+    lon: &mut [f64],
 ) {
     lat[idx] += unit_lat(level) * lat_multiplier[idx.min(lat_multiplier.len() - 1)];
     lon[idx] += unit_lon(level) * lon_multiplier[idx.min(lon_multiplier.len() - 1)];
@@ -116,10 +102,10 @@ fn apply_multipliers(
 
 /// Calculates a mesh point (latitude, longitude) from a meshcode and multipliers.
 pub fn to_meshpoint(
-    meshcode: Array1<u64>,
-    lat_multiplier: Array1<f64>,
-    lon_multiplier: Array1<f64>,
-) -> Result<Array2<f64>> {
+    meshcode: &[u64],
+    lat_multiplier: &[f64],
+    lon_multiplier: &[f64],
+) -> Result<Vec<Vec<f64>>> {
     // Convert single values to arrays
     let meshcode_len = meshcode.len();
 
@@ -137,9 +123,9 @@ pub fn to_meshpoint(
     let j = slice(&meshcode, 9, 10);
     let k = slice(&meshcode, 10, 11);
 
-    // Initialize lat and lon arrays
-    let mut lat = Array1::zeros(meshcode_len);
-    let mut lon = Array1::zeros(meshcode_len);
+    // Initialize lat and lon vectors
+    let mut lat = vec![0.0; meshcode_len];
+    let mut lon = vec![0.0; meshcode_len];
 
     // Process coordinates based on mesh levels
     for idx in 0..meshcode_len {
@@ -288,21 +274,14 @@ pub fn to_meshpoint(
         );
     }
 
-    // Create a 2xN array with [lat, lon] for each meshcode
-    let mut result = Array2::zeros((2, meshcode_len));
-    for idx in 0..meshcode_len {
-        result[[0, idx]] = lat[idx];
-        result[[1, idx]] = lon[idx];
-    }
-
-    Ok(result)
+    // Create a vector of [lat, lon] pairs for each meshcode
+    Ok(vec![lat, lon])
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
     use approx::assert_relative_eq;
-    use ndarray::array;
 
     #[test]
     fn test_to_meshpoint() {
@@ -327,18 +306,12 @@ mod tests {
         ];
 
         for (meshcode, lat_multiplier, lon_multiplier, expected_lat, expected_lon) in test_cases {
-            // Convert inputs to arrays
-            let meshcode_array = array![meshcode as u64];
-            let lat_multiplier_array = array![lat_multiplier];
-            let lon_multiplier_array = array![lon_multiplier];
-
             // Call the function
-            let result =
-                to_meshpoint(meshcode_array, lat_multiplier_array, lon_multiplier_array).unwrap();
+            let result = to_meshpoint(&[meshcode], &[lat_multiplier], &[lon_multiplier]).unwrap();
 
             // Check results with approximately equal (7 decimal places)
-            assert_relative_eq!(result[[0, 0]], expected_lat, epsilon = 1e-7);
-            assert_relative_eq!(result[[1, 0]], expected_lon, epsilon = 1e-7);
+            assert_relative_eq!(result[0][0], expected_lat, epsilon = 1e-7);
+            assert_relative_eq!(result[1][0], expected_lon, epsilon = 1e-7);
         }
     }
 
@@ -350,19 +323,18 @@ mod tests {
         let expected_lat = 35.0 + 1.0 / 3.0;
         let expected_lon = 139.0;
 
-        // Create arrays
-        let meshcode_array = Array1::from_elem(num_elements, meshcode_value);
-        let lat_multiplier_array = Array1::zeros(num_elements);
-        let lon_multiplier_array = Array1::zeros(num_elements);
-
         // Call the function
-        let result =
-            to_meshpoint(meshcode_array, lat_multiplier_array, lon_multiplier_array).unwrap();
+        let result = to_meshpoint(
+            &vec![meshcode_value; num_elements],
+            &vec![0.0; num_elements],
+            &vec![0.0; num_elements],
+        )
+        .unwrap();
 
         // Check results
         for i in 0..num_elements {
-            assert_relative_eq!(result[[0, i]], expected_lat, epsilon = 1e-7);
-            assert_relative_eq!(result[[1, i]], expected_lon, epsilon = 1e-7);
+            assert_relative_eq!(result[0][i], expected_lat, epsilon = 1e-7);
+            assert_relative_eq!(result[1][i], expected_lon, epsilon = 1e-7);
         }
     }
 }

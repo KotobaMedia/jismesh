@@ -1,6 +1,5 @@
 use super::*;
 use crate::utils::error::JismeshError;
-use ndarray::Array1;
 
 /// Converts latitude & longitude to a meshcode.
 /// 緯度経度から指定次の地域メッシュコードを算出する。
@@ -8,7 +7,7 @@ use ndarray::Array1;
 /// Args:
 /// * lat: 世界測地系の緯度(度単位)
 /// * lon: 世界測地系の経度(度単位)
-pub fn to_meshcode(lat: &Array1<f64>, lon: &Array1<f64>, level: MeshLevel) -> Result<Array1<u64>> {
+pub fn to_meshcode(lat: &[f64], lon: &[f64], level: MeshLevel) -> Result<Vec<u64>> {
     // Validate bounds for all values in the arrays
     for &lat_val in lat.iter() {
         if !(0.0 <= lat_val && lat_val < 66.66) {
@@ -22,15 +21,16 @@ pub fn to_meshcode(lat: &Array1<f64>, lon: &Array1<f64>, level: MeshLevel) -> Re
         }
     }
 
-    // Create output array
-    let mut result = Array1::zeros(lat.len().max(lon.len()));
+    // Create output vector
+    let result_len = lat.len().max(lon.len());
+    let mut result = Vec::with_capacity(result_len);
 
-    for i in 0..result.len() {
+    for i in 0..result_len {
         let lat_val = lat[i % lat.len()];
         let lon_val = lon[i % lon.len()];
 
         // Calculate mesh code based on level
-        result[i] = match level {
+        let meshcode = match level {
             MeshLevel::Lv1 => meshcode_lv1(lat_val, lon_val),
             MeshLevel::X40 => meshcode_40000(lat_val, lon_val),
             MeshLevel::X20 => meshcode_20000(lat_val, lon_val),
@@ -46,6 +46,7 @@ pub fn to_meshcode(lat: &Array1<f64>, lon: &Array1<f64>, level: MeshLevel) -> Re
             MeshLevel::Lv5 => meshcode_lv5(lat_val, lon_val),
             MeshLevel::Lv6 => meshcode_lv6(lat_val, lon_val),
         };
+        result.push(meshcode);
     }
 
     Ok(result)
@@ -186,38 +187,36 @@ fn meshcode_lv6(lat: f64, lon: f64) -> u64 {
 
 #[cfg(test)]
 mod tests {
-    use ndarray::array;
-
     use super::*;
 
     #[test]
     fn test_error_invalid_latitude_min() {
-        let res = to_meshcode(&array![-0.1], &array![139.745433], MeshLevel::Lv1);
+        let res = to_meshcode(&[-0.1], &[139.745433], MeshLevel::Lv1);
         assert!(res.is_err());
     }
 
     #[test]
     fn test_error_invalid_latitude_max() {
-        let res = to_meshcode(&array![66.66], &array![139.745433], MeshLevel::Lv1);
+        let res = to_meshcode(&[66.66], &[139.745433], MeshLevel::Lv1);
         assert!(res.is_err());
     }
 
     #[test]
     fn test_error_invalid_longitude_min() {
-        let res = to_meshcode(&array![35.658581], &array![99.99], MeshLevel::Lv1);
+        let res = to_meshcode(&[35.658581], &[99.99], MeshLevel::Lv1);
         assert!(res.is_err());
     }
 
     #[test]
     fn test_error_invalid_longitude_max() {
-        let res = to_meshcode(&array![35.658581], &array![180.0], MeshLevel::Lv1);
+        let res = to_meshcode(&[35.658581], &[180.0], MeshLevel::Lv1);
         assert!(res.is_err());
     }
 
     #[test]
     fn test_tokyo_meshcodes() {
-        let lat = array![35.658581];
-        let lon = array![139.745433];
+        let lat = [35.658581];
+        let lon = [139.745433];
         let cases = vec![
             (MeshLevel::Lv1, 5339),
             (MeshLevel::X40, 53392),
@@ -236,14 +235,14 @@ mod tests {
         ];
         for (level, expected) in cases {
             let result = to_meshcode(&lat, &lon, level);
-            assert_eq!(result, Ok(array![expected]), "Failed for level {:?}", level);
+            assert_eq!(result, Ok(vec![expected]), "Failed for level {:?}", level);
         }
     }
 
     #[test]
     fn test_kyoto_meshcodes() {
-        let lat = array![34.987574];
-        let lon = array![135.759363];
+        let lat = [34.987574];
+        let lon = [135.759363];
         let cases = vec![
             (MeshLevel::Lv1, 5235),
             (MeshLevel::X40, 52352),
@@ -262,7 +261,7 @@ mod tests {
         ];
         for (level, expected) in cases {
             let result = to_meshcode(&lat, &lon, level);
-            assert_eq!(result, Ok(array![expected]), "Failed for level {:?}", level);
+            assert_eq!(result, Ok(vec![expected]), "Failed for level {:?}", level);
         }
     }
 }

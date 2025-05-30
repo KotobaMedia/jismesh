@@ -1,6 +1,5 @@
 use super::*;
 use crate::utils::meshcode::to_meshcode;
-use ndarray::Array1;
 
 /// Generate an envelope of mesh codes that cover the rectangular area
 /// defined by the southwest and northeast mesh codes.
@@ -10,14 +9,14 @@ use ndarray::Array1;
 /// * `meshcode_ne` - Northeast mesh code
 ///
 /// # Returns
-/// * `Result<Array1<u64>>` - Array of mesh codes that cover the area
+/// * `Result<Vec<u64>>` - Vector of mesh codes that cover the area
 ///
 /// # Errors
 /// * Returns an error if the mesh levels of the input codes don't match
-pub fn to_envelope(meshcode_sw: u64, meshcode_ne: u64) -> Result<Array1<u64>> {
+pub fn to_envelope(meshcode_sw: u64, meshcode_ne: u64) -> Result<Vec<u64>> {
     // Get mesh levels for both codes
-    let level_sw = to_meshlevel(&Array1::from_vec(vec![meshcode_sw]))?[0];
-    let level_ne = to_meshlevel(&Array1::from_vec(vec![meshcode_ne]))?[0];
+    let level_sw = to_meshlevel(&[meshcode_sw])?[0];
+    let level_ne = to_meshlevel(&[meshcode_ne])?[0];
 
     // Check if the mesh levels match
     if level_sw != level_ne {
@@ -28,22 +27,14 @@ pub fn to_envelope(meshcode_sw: u64, meshcode_ne: u64) -> Result<Array1<u64>> {
     let margin_lon = 0.5;
 
     // Generate mesh points for southwest and northeast corners
-    let sw_points = to_meshpoint(
-        Array1::from_vec(vec![meshcode_sw]),
-        Array1::from_vec(vec![margin_lat]),
-        Array1::from_vec(vec![margin_lon]),
-    )?;
+    let sw_points = to_meshpoint(&vec![meshcode_sw], &vec![margin_lat], &vec![margin_lon])?;
 
-    let ne_points = to_meshpoint(
-        Array1::from_vec(vec![meshcode_ne]),
-        Array1::from_vec(vec![1.0]),
-        Array1::from_vec(vec![1.0]),
-    )?;
+    let ne_points = to_meshpoint(&vec![meshcode_ne], &vec![1.0], &vec![1.0])?;
 
-    let lat_s = sw_points[[0, 0]];
-    let lon_w = sw_points[[1, 0]];
-    let lat_n = ne_points[[0, 0]];
-    let lon_e = ne_points[[1, 0]];
+    let lat_s = sw_points[0][0];
+    let lon_w = sw_points[1][0];
+    let lat_n = ne_points[0][0];
+    let lon_e = ne_points[1][0];
 
     make_envelope(lat_s, lon_w, lat_n, lon_e, level_sw)
 }
@@ -55,10 +46,10 @@ pub fn to_envelope(meshcode_sw: u64, meshcode_ne: u64) -> Result<Array1<u64>> {
 /// * `to_level` - Target mesh level for the intersection
 ///
 /// # Returns
-/// * `Result<Array1<u64>>` - Array of mesh codes that intersect with the input code
-pub fn to_intersects(meshcode: u64, to_level: MeshLevel) -> Result<Array1<u64>> {
+/// * `Result<Vec<u64>>` - Vector of mesh codes that intersect with the input code
+pub fn to_intersects(meshcode: u64, to_level: MeshLevel) -> Result<Vec<u64>> {
     // Get mesh level for the input code
-    let from_level = to_meshlevel(&Array1::from_vec(vec![meshcode]))?[0];
+    let from_level = to_meshlevel(&[meshcode])?[0];
 
     let from_unit_lat = unit_lat(from_level);
     let from_unit_lon = unit_lon(from_level);
@@ -80,22 +71,14 @@ pub fn to_intersects(meshcode: u64, to_level: MeshLevel) -> Result<Array1<u64>> 
     };
 
     // Generate mesh points for the original mesh code
-    let from_points_sw = to_meshpoint(
-        Array1::from_vec(vec![meshcode]),
-        Array1::from_vec(vec![margin_lat]),
-        Array1::from_vec(vec![margin_lon]),
-    )?;
+    let from_points_sw = to_meshpoint(&vec![meshcode], &vec![margin_lat], &vec![margin_lon])?;
 
-    let from_points_ne = to_meshpoint(
-        Array1::from_vec(vec![meshcode]),
-        Array1::from_vec(vec![1.0]),
-        Array1::from_vec(vec![1.0]),
-    )?;
+    let from_points_ne = to_meshpoint(&vec![meshcode], &vec![1.0], &vec![1.0])?;
 
-    let from_lat_s = from_points_sw[[0, 0]];
-    let from_lon_w = from_points_sw[[1, 0]];
-    let from_lat_n = from_points_ne[[0, 0]];
-    let from_lon_e = from_points_ne[[1, 0]];
+    let from_lat_s = from_points_sw[0][0];
+    let from_lon_w = from_points_sw[1][0];
+    let from_lat_n = from_points_ne[0][0];
+    let from_lon_e = from_points_ne[1][0];
 
     make_envelope(from_lat_s, from_lon_w, from_lat_n, from_lon_e, to_level)
 }
@@ -107,7 +90,7 @@ fn make_envelope(
     lat_n: f64,
     lon_e: f64,
     level: MeshLevel,
-) -> Result<Array1<u64>> {
+) -> Result<Vec<u64>> {
     let to_unit_lat = unit_lat(level);
     let to_unit_lon = unit_lon(level);
 
@@ -130,13 +113,12 @@ fn make_envelope(
         }
     }
 
-    to_meshcode(&Array1::from_vec(lats), &Array1::from_vec(lons), level)
+    to_meshcode(&lats, &lons, level)
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use ndarray::array;
 
     #[test]
     fn test_to_envelope() {
@@ -169,7 +151,7 @@ mod tests {
 
         // All resulting codes should be level 2
         for code in result.iter() {
-            let level = to_meshlevel(&array![*code]).unwrap();
+            let level = to_meshlevel(&[*code]).unwrap();
             assert_eq!(level[0], MeshLevel::Lv2);
         }
 
@@ -182,7 +164,7 @@ mod tests {
 
         // All resulting codes should be level 3
         for code in result.iter() {
-            let level = to_meshlevel(&array![*code]).unwrap();
+            let level = to_meshlevel(&[*code]).unwrap();
             assert_eq!(level[0], MeshLevel::Lv3);
         }
     }

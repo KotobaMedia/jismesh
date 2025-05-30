@@ -11,7 +11,6 @@ mod meshpoint;
 pub use meshpoint::to_meshpoint;
 mod envelope;
 pub use envelope::{to_envelope, to_intersects};
-use ndarray::Array1;
 
 const UNIT_LAT_LV1: f64 = 2.0 / 3.0;
 const UNIT_LON_LV1: f64 = 1.0;
@@ -69,46 +68,48 @@ pub(crate) fn unit_lon(level: MeshLevel) -> f64 {
     unit_lat_lon(level).1
 }
 
-pub(crate) fn slice(codes: &Array1<u64>, start: u32, stop: u32) -> Array1<u8> {
-    codes.mapv(|t| {
-        let num_digits = (t as f64).log10().floor() as u32 + 1;
-        if num_digits < stop {
-            0
-        } else {
-            let mask1 = 10_u64.pow(num_digits - start);
-            let mask2 = 10_u64.pow(num_digits - stop);
-            ((t % mask1) / mask2) as u8
-        }
-    })
+pub(crate) fn slice(codes: &[u64], start: u32, stop: u32) -> Vec<u8> {
+    codes
+        .iter()
+        .map(|&t| {
+            let num_digits = (t as f64).log10().floor() as u32 + 1;
+            if num_digits < stop {
+                0
+            } else {
+                let mask1 = 10_u64.pow(num_digits - start);
+                let mask2 = 10_u64.pow(num_digits - stop);
+                ((t % mask1) / mask2) as u8
+            }
+        })
+        .collect()
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use ndarray::array;
 
     #[test]
     fn test_slice() {
         // Test single digit extraction
-        assert_eq!(slice(&array![12345], 0, 1), array![1]); // Leftmost digit
-        assert_eq!(slice(&array![12345], 1, 2), array![2]); // Second digit from left
-        assert_eq!(slice(&array![12345], 4, 5), array![5]); // Rightmost digit
+        assert_eq!(slice(&[12345], 0, 1), vec![1]); // Leftmost digit
+        assert_eq!(slice(&[12345], 1, 2), vec![2]); // Second digit from left
+        assert_eq!(slice(&[12345], 4, 5), vec![5]); // Rightmost digit
 
         // Test multiple digit extraction
-        assert_eq!(slice(&array![12345], 0, 2), array![12]); // Two leftmost digits
-        assert_eq!(slice(&array![12345], 1, 4), array![234]); // Middle digits
-        assert_eq!(slice(&array![12345], 3, 5), array![45]); // Two rightmost digits
+        assert_eq!(slice(&[12345], 0, 2), vec![12]); // Two leftmost digits
+        assert_eq!(slice(&[12345], 1, 4), vec![234]); // Middle digits
+        assert_eq!(slice(&[12345], 3, 5), vec![45]); // Two rightmost digits
 
         // Test with multiple codes
-        assert_eq!(slice(&array![123, 456, 7890], 0, 1), array![1, 4, 7]);
-        assert_eq!(slice(&array![123, 456, 7890], 1, 3), array![23, 56, 89]);
+        assert_eq!(slice(&[123, 456, 7890], 0, 1), vec![1, 4, 7]);
+        assert_eq!(slice(&[123, 456, 7890], 1, 3), vec![23, 56, 89]);
 
         // Test with zero
-        assert_eq!(slice(&array![0], 0, 1), array![0]);
+        assert_eq!(slice(&[0], 0, 1), vec![0]);
 
         // Edge cases
-        assert_eq!(slice(&array![5], 0, 1), array![5]); // Single digit
-        assert_eq!(slice(&array![5], 2, 2), array![0]); // Out of bounds
-        assert_eq!(slice(&array![12345], 6, 7), array![0]); // Beyond digits available
+        assert_eq!(slice(&[5], 0, 1), vec![5]); // Single digit
+        assert_eq!(slice(&[5], 2, 2), vec![0]); // Out of bounds
+        assert_eq!(slice(&[12345], 6, 7), vec![0]); // Beyond digits available
     }
 }
