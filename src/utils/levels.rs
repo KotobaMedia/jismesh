@@ -109,8 +109,6 @@ impl TryFrom<usize> for MeshLevel {
 
 #[cfg(test)]
 mod tests {
-    use crate::utils::levels;
-
     use super::*;
     use strum::IntoEnumIterator;
 

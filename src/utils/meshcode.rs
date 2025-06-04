@@ -1,6 +1,6 @@
 use super::*;
 use crate::utils::error::JismeshError;
-use std::{fmt, ops::Deref, str::FromStr};
+use std::{fmt, str::FromStr};
 
 /// 地域メッシュコードを表す構造体
 ///
