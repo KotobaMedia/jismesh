@@ -4,7 +4,7 @@ pub use error::JismeshError;
 use error::Result;
 pub use levels::MeshLevel;
 mod meshcode;
-pub use meshcode::to_meshcode;
+pub use meshcode::{MeshCode, to_meshcode};
 mod meshlevel;
 pub use meshlevel::to_meshlevel;
 mod meshpoint;

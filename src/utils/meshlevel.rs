@@ -3,8 +3,8 @@ use crate::utils::error::JismeshError;
 
 /// Determines the mesh level from a meshcode.
 pub fn to_meshlevel(meshcode: &[u64]) -> Result<Vec<MeshLevel>> {
-    // Check if any value is 0 or invalid
-    if meshcode.iter().any(|&code| code == 0) {
+    // Check if any value is 0
+    if meshcode.contains(&0) {
         return Err(JismeshError::UnknownMeshLevelForCode(0));
     }
 

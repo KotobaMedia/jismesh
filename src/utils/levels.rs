@@ -3,9 +3,9 @@ use std::fmt;
 use strum_macros::{EnumIter, EnumString};
 
 /// 地域メッシュコードの次数
-#[derive(Debug, Clone, Copy, PartialEq, EnumIter, EnumString)]
+#[derive(Debug, Clone, Copy, Eq, EnumIter, EnumString, PartialEq, PartialOrd, Ord, Hash)]
 pub enum MeshLevel {
-    /// 1次(80km四方)
+    /// 1次(80km四方) 4桁
     Lv1 = 1,
     /// 40倍(40km四方)
     X40 = 40000,
@@ -13,7 +13,7 @@ pub enum MeshLevel {
     X20 = 20000,
     /// 16倍(16km四方)
     X16 = 16000,
-    /// 2次(10km四方)
+    /// 2次(10km四方) 6桁
     Lv2 = 2,
     /// 8倍(8km四方)
     X8 = 8000,
@@ -25,7 +25,7 @@ pub enum MeshLevel {
     X2_5 = 2500,
     /// 2倍(2km四方)
     X2 = 2000,
-    /// 3次(1km四方)
+    /// 3次(1km四方) 8桁
     Lv3 = 3,
     /// 4次(500m四方)
     Lv4 = 4,

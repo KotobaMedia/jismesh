@@ -16,6 +16,12 @@ pub enum JismeshError {
     #[error("Invalid mesh level: {0}")]
     InvalidMeshLevel(usize),
 
+    #[error("{0} is not lower than {1}")]
+    InvalidMeshLevelForLowerLevel(MeshLevel, MeshLevel),
+
+    #[error("Unsupported mesh level conversion from {0} to {1}")]
+    UnsupportedMeshLevelConversion(MeshLevel, MeshLevel),
+
     #[error(
         "Mismathed levels: the level must be the same for meshcode_sw and meshcode_ne {0} != {1}"
     )]
