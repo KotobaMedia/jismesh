@@ -109,8 +109,34 @@ impl TryFrom<usize> for MeshLevel {
 
 #[cfg(test)]
 mod tests {
+    use crate::utils::levels;
+
     use super::*;
     use strum::IntoEnumIterator;
+
+    #[test]
+    fn tesh_meshlevel_sort() {
+        let mut levels = vec![
+            MeshLevel::Lv6,
+            MeshLevel::Lv3,
+            MeshLevel::Lv2,
+            MeshLevel::Lv5,
+            MeshLevel::Lv4,
+            MeshLevel::Lv1,
+        ];
+        levels.sort();
+        assert_eq!(
+            levels,
+            vec![
+                MeshLevel::Lv1,
+                MeshLevel::Lv2,
+                MeshLevel::Lv3,
+                MeshLevel::Lv4,
+                MeshLevel::Lv5,
+                MeshLevel::Lv6
+            ]
+        );
+    }
 
     #[test]
     fn test_meshlevel_conversion() {

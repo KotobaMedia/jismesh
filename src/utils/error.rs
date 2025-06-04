@@ -16,6 +16,9 @@ pub enum JismeshError {
     #[error("Invalid mesh level: {0}")]
     InvalidMeshLevel(usize),
 
+    #[error("Invalid meshcode: {0} is not a valid meshcode")]
+    InvalidMeshCode(String),
+
     #[error("{0} is not lower than {1}")]
     InvalidMeshLevelForLowerLevel(MeshLevel, MeshLevel),
 

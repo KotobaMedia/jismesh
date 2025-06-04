@@ -1,12 +1,12 @@
 use super::*;
 use crate::utils::error::JismeshError;
-use std::ops::Deref;
+use std::{fmt, ops::Deref, str::FromStr};
 
 /// 地域メッシュコードを表す構造体
 ///
 /// TryFrom<u64> を実装しているので u64 から MeshCode への変換に使ってください。
 /// Into<u64> も実装しているので、 u64 として利用する場合は使ってください。
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Ord, PartialOrd)]
 pub struct MeshCode {
     pub(crate) value: u64,
     pub level: MeshLevel,
@@ -48,6 +48,32 @@ impl MeshCode {
         let points = to_meshpoint(&[self.value], &[lat_multiplier], &[lon_multiplier])?;
         Ok((points[0][0], points[1][0]))
     }
+
+    /// メッシュコードが指定されたメッシュコードを含むかどうかを確認する。
+    pub fn contains(&self, code: &MeshCode) -> bool {
+        if self.level == code.level {
+            return self.value == code.value;
+        }
+        if self.level > code.level {
+            return false;
+        }
+
+        // Check if the code is a lower level of this mesh code
+        let parent_code = code.lower_level(self.level);
+        match parent_code {
+            Ok(parent) => self.value == parent.value,
+            Err(_) => false,
+        }
+    }
+
+    /// メッシュコードが指定されたメッシュコードと交差するかどうかを確認する。
+    pub fn intersects(&self, other: &MeshCode) -> bool {
+        if self.level < other.level {
+            self.contains(other)
+        } else {
+            other.contains(self)
+        }
+    }
 }
 
 impl TryFrom<u64> for MeshCode {
@@ -62,23 +88,32 @@ impl TryFrom<u64> for MeshCode {
     }
 }
 
+impl FromStr for MeshCode {
+    type Err = error::JismeshError;
+
+    fn from_str(value: &str) -> Result<Self> {
+        let value = value
+            .parse::<u64>()
+            .map_err(|_| JismeshError::InvalidMeshCode(value.to_string()))?;
+        value.try_into()
+    }
+}
+
 impl From<MeshCode> for u64 {
     fn from(meshcode: MeshCode) -> Self {
         meshcode.value
     }
 }
 
-impl PartialEq<u64> for MeshCode {
-    fn eq(&self, other: &u64) -> bool {
-        self.value == *other
+impl fmt::Display for MeshCode {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.value)
     }
 }
 
-impl Deref for MeshCode {
-    type Target = u64;
-
-    fn deref(&self) -> &Self::Target {
-        &self.value
+impl PartialEq<u64> for MeshCode {
+    fn eq(&self, other: &u64) -> bool {
+        self.value == *other
     }
 }
 
@@ -555,6 +590,52 @@ mod tests {
             // Check results with approximately equal (7 decimal places)
             assert_relative_eq!(result.0, expected_lat, epsilon = 1e-7);
             assert_relative_eq!(result.1, expected_lon, epsilon = 1e-7);
+        }
+    }
+
+    #[test]
+    fn test_meshcode_contains() {
+        let cases = vec![
+            // (parent, child, expected)
+            (5339, 5339, true),    // Same level
+            (5339, 533911, true),  // Child at higher level
+            (533900, 5339, false), // Child at lower level
+            (5339, 5340, false),   // Same level, disjoint
+            (5339, 534001, false), // Child at higher level, disjoint
+        ];
+        for (parent_value, child_value, expected) in cases {
+            let parent = MeshCode::try_from(parent_value).unwrap();
+            let child = MeshCode::try_from(child_value).unwrap();
+            assert_eq!(
+                parent.contains(&child),
+                expected,
+                "Failed for parent {} and child {}",
+                parent_value,
+                child_value
+            );
+        }
+    }
+
+    #[test]
+    fn test_meshcode_intersects() {
+        let cases = vec![
+            // (left, right, expected)
+            (5339, 5339, true),    // Same level
+            (5339, 533911, true),  // right at higher level
+            (533900, 5339, true),  // right at lower level
+            (5339, 5340, false),   // Same level, disjoint
+            (5339, 534001, false), // right at higher level, disjoint
+        ];
+        for (left_value, right_value, expected) in cases {
+            let left = MeshCode::try_from(left_value).unwrap();
+            let right = MeshCode::try_from(right_value).unwrap();
+            assert_eq!(
+                left.intersects(&right),
+                expected,
+                "Failed for left {} and right {}",
+                left_value,
+                right_value
+            );
         }
     }
 }
