@@ -9,7 +9,7 @@ use crate::utils::meshcode::{MeshCode, to_meshcode};
 /// * `meshcode_ne` - Northeast mesh code
 ///
 /// # Returns
-/// * `Result<Vec<u64>>` - Vector of mesh codes that cover the area
+/// * `Result<Vec<MeshCode>>` - Vector of mesh codes that cover the area
 ///
 /// # Errors
 /// * Returns an error if the mesh levels of the input codes don't match
@@ -138,6 +138,16 @@ mod tests {
         assert!(result.len() > 1);
         assert!(result.iter().any(|&x| x == 533900));
         assert!(result.iter().any(|&x| x == 533901));
+
+        // Test with level 3 mesh codes
+        let meshcode_sw = MeshCode::try_from(58405438).unwrap(); // Southwest corner
+        let meshcode_ne = MeshCode::try_from(58405449).unwrap(); // Northeast corner
+        let result = to_envelope(&meshcode_sw, &meshcode_ne).unwrap();
+        assert_eq!(result.len(), 4); // Should cover a 2x2 grid at level 3
+        assert!(result.iter().any(|&x| x == 58405438));
+        assert!(result.iter().any(|&x| x == 58405439));
+        assert!(result.iter().any(|&x| x == 58405448));
+        assert!(result.iter().any(|&x| x == 58405449));
     }
 
     #[test]
