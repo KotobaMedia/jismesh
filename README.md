@@ -33,19 +33,32 @@ cargo add jismesh
 
 **注意: このライブラリは [Python](https://github.com/hni14/jismesh) 版と同様に、「緯度」「軽度」の順で引数を受け付けています**
 
+v0.3.0 からインターフェースが変わりました。今まで `u64` でメッシュコードを表していましたが、現在は `MeshCode` に変わっています。`u64 -> MeshCode` は TryFrom 、 `MeshCode -> u64` は From の impl あるので、変換に使ってください。今後、処理等は全部 `MeshCode` に移行していく予定です。使用例は下記参照してください。
+
 ### 緯度軽度（世界測地系）からメッシュコードを生成する場合
 
 ```rust
-use jismesh::{MeshLevel, to_meshcode};
+use jismesh::{MeshCode, MeshLevel::Lv3, to_meshcode};
 
-let codes = to_meshcode(&[35.658581], &[139.745433], MeshLevel::Lv3).unwrap();
+// MeshCode を使う場合
+let meshcode = MeshCode::try_from_latlng(35.658581, 139.745433, Lv3).unwrap();
+// MeshCode に MeshLevel が含まれている
+assert_eq!(meshcode.level, Lv3);
+// u64 と impl PartialEq が実装されています
+assert_eq!(meshcode, 53393599);
+// u64 として必要なときは From / Into 使えます
+let meshcode_u64: u64 = meshcode.into();
+assert_eq!(meshcode_u64, 53393599);
+
+// Python 版インターフェース
+let codes = to_meshcode(&[35.658581], &[139.745433], Lv3).unwrap();
 assert_eq!(codes, &[53393599]);
 
 // 複数点を計算する場合
 let codes = to_meshcode(
     &[35.658581, 34.987574],
     &[139.745433, 135.759363],
-    MeshLevel::Lv3,
+    Lv3,
 ).unwrap();
 assert_eq!(codes, &[53393599, 52353680]);
 ```
@@ -53,8 +66,12 @@ assert_eq!(codes, &[53393599, 52353680]);
 ### 地域メッシュコードから次数を計算する場合
 
 ```rust
-use jismesh::{MeshLevel::Lv3, to_meshlevel};
+use jismesh::{MeshCode, MeshLevel::Lv3, to_meshlevel};
 
+let meshcode = MeshCode::try_from(53393599u64).unwrap();
+assert_eq!(meshcode.level, Lv3);
+
+// Python 版インターフェース
 let levels = to_meshlevel(&[53393599, 52353680]).unwrap();
 assert_eq!(levels, &[Lv3, Lv3]);
 ```
@@ -62,17 +79,32 @@ assert_eq!(levels, &[Lv3, Lv3]);
 ### 地域メッシュコードから緯度経度を計算する場合
 
 ```rust
-use jismesh::to_meshpoint;
+use jismesh::{MeshCode, to_meshpoint};
 
+let code = MeshCode::try_from(53393599u64).unwrap();
 // 南西端の緯度経度を求める。
+assert_eq!(
+    code.point(0.0, 0.0).unwrap(),
+    (35.65833333333333, 139.7375)
+);
+// 北東端の緯度経度を求める。
+assert_eq!(
+    code.point(1.0, 1.0).unwrap(),
+    (35.666666666666664, 139.75)
+);
+// 中心点の緯度経度を求める。
+assert_eq!(
+    code.point(0.5, 0.5).unwrap(),
+    (35.6625, 139.74375)
+);
+
+// Python 版インターフェース
 let points = to_meshpoint(&[53393599], &[0.0], &[0.0]).unwrap();
 assert_eq!(points, &[&[35.65833333333333],&[139.7375]]);
 
-// 北東端の緯度経度を求める。
 let points = to_meshpoint(&[53393599], &[1.0], &[1.0]).unwrap();
 assert_eq!(points, &[&[35.666666666666664],&[139.75]]);
 
-// 中心点の緯度経度を求める。
 let points = to_meshpoint(&[53393599], &[0.5], &[0.5]).unwrap();
 assert_eq!(points, &[&[35.6625],&[139.74375]]);
 ```

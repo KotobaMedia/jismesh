@@ -13,6 +13,14 @@ pub struct MeshCode {
 }
 
 impl MeshCode {
+    /// 緯度経度からメッシュコードを生成する。
+    pub fn try_from_latlng(lat: f64, lon: f64, level: MeshLevel) -> Result<Self> {
+        let meshcode = to_meshcode(&[lat], &[lon], level)?;
+        // we use unwrap here because we know there will be exactly one meshcode in the
+        // result, if there was no error.
+        Ok(meshcode.first().cloned().unwrap())
+    }
+
     /// あるメッシュコードの次数を下げる（親メッシュコードを取得する）ために使ってください。
     /// 現在は、 Lv3 -> Lv2 -> Lv1 のみ対応しております。
     pub fn lower_level(&self, level: MeshLevel) -> Result<MeshCode> {
